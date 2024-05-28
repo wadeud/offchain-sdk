@@ -2,14 +2,13 @@
 #                       Makefile                       #
 ########################################################
 
-# Default target
-all: format build
+.DEFAULT_GOAL := all
+.PHONY: all setup build run lint test format generate tidy
 
 ########################################################
 #                         Setup                        #
 ########################################################
 
-# Generate versioning information
 TAG_COMMIT := $(shell git rev-list --abbrev-commit --tags --max-count=1)
 TAG := $(shell git describe --abbrev=0 --tags ${TAG_COMMIT} 2>/dev/null || true)
 COMMIT := $(shell git rev-parse --short HEAD)
@@ -22,31 +21,40 @@ ifneq ($(shell git status --porcelain),)
     VERSION := $(VERSION)-dirty
 endif
 
-
 ########################################################
 #                       Building                       #
 ########################################################
 
-# Target for building the application in all directories
-build:; go build ./...
+build:
+	@echo "Building all packages"
+	@go build ./...
 
-# Run the example applications
-run-%:; go run ./examples/$*/main.go start
+run-%:
+	@echo "Running $* example"
+	@go run ./examples/$*/main.go start
 
-# Format
-lint: |
-	go run github.com/golangci/golangci-lint/cmd/golangci-lint run
+lint:
+	@echo "Running linting"
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run
 
-# Test
-test: |
-	go test -v ./...
+test:
+	@echo "Running tests"
+	@go test -v ./...
 
-# Format
-format: |
-	go run github.com/golangci/golangci-lint/cmd/golangci-lint run --fix
+format:
+	@echo "Formatting code"
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --fix
 
-generate: |
-	go generate ./...
+generate:
+	@echo "Generating code"
+	@go generate ./...
 
-tidy: |
-	go mod tidy
+tidy:
+	@echo "Tidying modules"
+	@go mod tidy
+
+all: setup build
+
+setup:
+	@echo "Setting up project"
+	@echo "Version: $(VERSION)"
